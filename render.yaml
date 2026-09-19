@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: chat-html-converter2
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz

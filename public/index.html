@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chat HTML Converter | 会話を、読み返しやすく。</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/"><span class="brand-icon">C</span> Chat HTML Converter</a><span class="tag">会話ログ → HTML</span></header>
+  <main>
+    <section class="intro"><p class="eyebrow">KEEP YOUR CONVERSATIONS</p><h1>会話を、読み返しやすく。</h1><p>ChatGPTとのやりとりを、見やすいチャット風HTMLに。<br>ログを入れて変換するだけで、いつでも開ける一枚にまとまります。</p></section>
+    <div class="workspace">
+      <section class="panel editor"><div class="panel-heading"><h2><span>01</span> ログを入力</h2><button id="sample" class="text-button" type="button">サンプルを試す</button></div>
+        <label class="upload" for="file"><span class="upload-icon">↑</span><strong>テキストファイルを選択</strong><span>UTF-8の .txt / .md · 最大2 MiB</span><input id="file" type="file" accept=".txt,.md,text/plain,text/markdown"></label>
+        <div class="editor-label"><label for="source">または、ここに貼り付け</label><span id="count">0 文字</span></div>
+        <textarea id="source" spellcheck="false" placeholder="User:&#10;こんにちは！&#10;&#10;Assistant:&#10;こんにちは。何をお手伝いしましょうか？"></textarea>
+        <label class="upload image-upload" for="images"><strong>画像ファイルを追加</strong><span>PNG / JPEG / GIF / WebP · 各10 MiB、合計20 MiB</span><input id="images" type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple></label>
+        <p class="image-help">画像はログのカーソル位置に挿入します。先に User: または Assistant: と本文を入力してください。</p>
+        <ul id="image-list" aria-label="追加した画像"></ul>
+        <details><summary>対応するログの形式</summary><p><code>User:</code> と <code>Assistant:</code> をそれぞれ単独の行に書き、その次の行から本文を入力してください。</p><p>「あなた:」「自分:」「ChatGPT:」「AI:」も使えます。見出し・太字・インラインコード・コードブロック・<code>```mermaid</code> の図に対応しています。JSON / ZIPのエクスポートには対応していません。</p><p>Mermaid図の変換時だけ描画ライブラリをインターネットから読み込みます。作成したHTMLには図をSVGとして埋め込むため、閲覧時の通信は不要です。</p></details>
+        <button id="convert" class="primary" type="button">HTMLに変換 <span>→</span></button>
+        <p id="status" class="status" role="status" aria-live="polite">ログを入力して、変換ボタンを押してください。</p>
+      </section>
+      <section class="panel preview"><div class="panel-heading"><h2><span>02</span> プレビュー</h2><span class="preview-badge" id="preview-state">未変換</span></div>
+        <div class="preview-body"><div class="empty" id="empty"><div class="bubbles"><i></i><i></i></div><h3>ここに会話が表示されます</h3><p>絵文字のアイコンと吹き出しで、<br>長い会話も読みやすく。</p></div><iframe id="preview" title="変換した会話のプレビュー" sandbox="" hidden></iframe></div>
+        <div class="download-area"><button id="download" type="button" class="download" disabled>↓ HTMLをダウンロード</button><p>保存したHTMLは、ブラウザでそのまま開けます。</p></div>
+      </section>
+    </div>
+    <footer><span class="privacy-dot"></span>ログは変換のためサーバーに送信されます。画像データはサーバーに送信せず、保存するHTMLに埋め込みます。アプリはログをファイルやデータベースに保存しません。</footer>
+  </main>
+</body>
+</html>

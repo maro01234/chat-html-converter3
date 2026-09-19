@@ -1,0 +1,7 @@
+.git
+out
+*.html
+*.txt
+!public/**
+README.md
+.DS_Store

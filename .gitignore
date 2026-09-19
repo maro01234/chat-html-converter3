@@ -1,0 +1,6 @@
+out/
+*.class
+.DS_Store
+chat.txt
+chat-emoji.html
+.env
