@@ -183,7 +183,18 @@ async function renderMermaidDiagrams(doc) {
     const definition = placeholder.textContent;
     if (!definition.trim()) throw new Error(`Mermaid図${index + 1}が空です。`);
     const staging = document.createElement('div');
-    staging.hidden = true;
+    // Mermaid measures the staging element while it renders. `hidden` applies
+    // display:none, which makes those measurements zero and produces an empty
+    // diagram. Keep it laid out, but place it safely outside the viewport.
+    Object.assign(staging.style, {
+      position: 'fixed',
+      left: '-10000px',
+      top: '0',
+      width: '1200px',
+      visibility: 'hidden',
+      pointerEvents: 'none'
+    });
+    staging.setAttribute('aria-hidden', 'true');
     document.body.append(staging);
     try {
       const id = `mermaid-${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`;
