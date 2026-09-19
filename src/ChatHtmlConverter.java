@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
  *   # ～ ######        見出し
  *   **文字**          太字
  *   `文字`            インラインコード
+ *   | 列 | 列 |       Markdown表
  *   ```               コードブロック
  *   ```mermaid        Mermaid図（Web画面でSVGへ変換）
  */
@@ -337,6 +338,48 @@ public class ChatHtmlConverter {
 
                         .mermaid-source { white-space: pre-wrap; }
 
+                        .table-scroll {
+                            max-width: 100%;
+                            margin: 16px 0;
+                            overflow-x: auto;
+                        }
+
+                        .bubble table {
+                            width: 100%;
+                            min-width: 360px;
+                            border-collapse: collapse;
+                            border-spacing: 0;
+                            font-size: 0.96em;
+                            line-height: 1.55;
+                        }
+
+                        .bubble th,
+                        .bubble td {
+                            padding: 10px 12px;
+                            border-bottom: 1px solid #e5e7eb;
+                            text-align: left;
+                            vertical-align: top;
+                        }
+
+                        .bubble th {
+                            background: #f7f7f8;
+                            color: #202123;
+                            font-weight: 700;
+                        }
+
+                        .bubble tbody tr:last-child td {
+                            border-bottom: 0;
+                        }
+
+                        .user .bubble table {
+                            color: #202123;
+                            background: white;
+                        }
+
+                        .user .bubble .table-scroll {
+                            border-radius: 8px;
+                        }
+
                         .bubble p { margin: 0 0 12px; }
                         .bubble p:last-child { margin-bottom: 0; }
 
@@ -586,30 +629,134 @@ public class ChatHtmlConverter {
             return;
         }
 
-        String[] paragraphs = normalText.toString().split("\\n\\s*\\n");
+        String[] lines = normalText.toString().split("\\n", -1);
+        StringBuilder paragraph = new StringBuilder();
 
-        for (String paragraph : paragraphs) {
-            String trimmed = paragraph.strip();
-
-            if (trimmed.isEmpty()) {
+        for (int index = 0; index < lines.length;) {
+            if (index + 1 < lines.length && isMarkdownTableStart(lines[index], lines[index + 1])) {
+                appendParagraph(html, paragraph);
+                index = appendMarkdownTable(html, lines, index);
                 continue;
             }
 
-            html.append("<p>");
-            String[] paragraphLines = trimmed.split("\\n", -1);
-
-            for (int i = 0; i < paragraphLines.length; i++) {
-                html.append(formatInlineMarkdown(paragraphLines[i]));
-
-                if (i < paragraphLines.length - 1) {
-                    html.append("<br>\n");
+            if (lines[index].isBlank()) {
+                appendParagraph(html, paragraph);
+            } else {
+                if (!paragraph.isEmpty()) {
+                    paragraph.append("\n");
                 }
+                paragraph.append(lines[index]);
             }
-
-            html.append("</p>");
+            index++;
         }
 
+        appendParagraph(html, paragraph);
+
         normalText.setLength(0);
+    }
+
+    private static void appendParagraph(StringBuilder html, StringBuilder paragraph) {
+        String trimmed = paragraph.toString().strip();
+        if (trimmed.isEmpty()) {
+            paragraph.setLength(0);
+            return;
+        }
+
+        html.append("<p>");
+        String[] lines = trimmed.split("\\n", -1);
+        for (int index = 0; index < lines.length; index++) {
+            html.append(formatInlineMarkdown(lines[index]));
+            if (index < lines.length - 1) {
+                html.append("<br>\n");
+            }
+        }
+        html.append("</p>");
+        paragraph.setLength(0);
+    }
+
+    private static boolean isMarkdownTableStart(String headerLine, String separatorLine) {
+        List<String> header = parseTableRow(headerLine);
+        List<String> separator = parseTableRow(separatorLine);
+        if (header == null || separator == null || header.size() != separator.size()) {
+            return false;
+        }
+        for (String cell : separator) {
+            if (!cell.matches(":?-{3,}:?")) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int appendMarkdownTable(StringBuilder html, String[] lines, int start) {
+        List<String> header = parseTableRow(lines[start]);
+        int columns = header.size();
+        html.append("<div class=\"table-scroll\"><table><thead><tr>");
+        for (String cell : header) {
+            html.append("<th scope=\"col\">")
+                    .append(formatInlineMarkdown(cell))
+                    .append("</th>");
+        }
+        html.append("</tr></thead><tbody>");
+
+        int index = start + 2;
+        while (index < lines.length && !lines[index].isBlank()) {
+            List<String> row = parseTableRow(lines[index]);
+            if (row == null || row.size() != columns) {
+                break;
+            }
+            html.append("<tr>");
+            for (String cell : row) {
+                html.append("<td>")
+                        .append(formatInlineMarkdown(cell))
+                        .append("</td>");
+            }
+            html.append("</tr>");
+            index++;
+        }
+
+        html.append("</tbody></table></div>");
+        return index;
+    }
+
+    private static List<String> parseTableRow(String line) {
+        String value = line.strip();
+        if (!value.contains("|")) {
+            return null;
+        }
+        if (value.startsWith("|")) {
+            value = value.substring(1);
+        }
+        if (value.endsWith("|")) {
+            value = value.substring(0, value.length() - 1);
+        }
+
+        List<String> cells = new ArrayList<>();
+        StringBuilder cell = new StringBuilder();
+        boolean escaped = false;
+        boolean inCode = false;
+        for (int index = 0; index < value.length(); index++) {
+            char current = value.charAt(index);
+            if (escaped) {
+                cell.append(current);
+                escaped = false;
+            } else if (current == '\\') {
+                escaped = true;
+            } else if (current == '`') {
+                inCode = !inCode;
+                cell.append(current);
+            } else if (current == '|' && !inCode) {
+                cells.add(cell.toString().strip());
+                cell.setLength(0);
+            } else {
+                cell.append(current);
+            }
+        }
+        if (escaped) {
+            cell.append('\\');
+        }
+        cells.add(cell.toString().strip());
+        return cells.size() >= 2 ? cells : null;
     }
 
     private static void appendCodeBlock(

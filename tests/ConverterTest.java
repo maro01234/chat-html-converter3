@@ -21,6 +21,12 @@ public class ConverterTest {
         require(mermaid.contains("<div class=\"mermaid-source\" data-mermaid=\"true\">flowchart LR\nA[&lt;script&gt;] --&gt; B &amp; C</div>"), "mermaid placeholder and escaping");
         require(mermaid.contains("<pre><code>flowchart LR</code></pre>"), "non-mermaid language stays code");
         require(ChatHtmlConverter.convert("Assistant:\n```MERMAID\ngraph TD\nA-->B").contains("class=\"mermaid-source\""), "case-insensitive unclosed mermaid fence");
+        String table = ChatHtmlConverter.convert("Assistant:\n表の前\n\n| 得意 | 苦手 |\n| :--- | ---: |\n| **場所・方向** | 抽象的な思想 |\n| 危険・禁止 | `微妙な感情` |\n\n表の後");
+        require(table.contains("<div class=\"table-scroll\"><table><thead><tr><th scope=\"col\">得意</th><th scope=\"col\">苦手</th></tr></thead><tbody>"), "markdown table header");
+        require(table.contains("<td><strong>場所・方向</strong></td><td>抽象的な思想</td>"), "markdown table cells and bold");
+        require(table.contains("<td>危険・禁止</td><td><code class=\"inline-code\">微妙な感情</code></td>"), "markdown table inline code");
+        require(table.contains("<p>表の前</p>") && table.contains("<p>表の後</p>"), "paragraphs around markdown table");
+        require(ChatHtmlConverter.convert("Assistant:\nA | B\n区切りではない").contains("<p>A | B<br>"), "ordinary pipes stay text");
         for (String invalid : new String[]{"", "no markers", "User:\n\nAssistant:"}) {
             boolean rejected = false;
             try { ChatHtmlConverter.convert(invalid); }

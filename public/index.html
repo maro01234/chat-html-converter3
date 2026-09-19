@@ -19,7 +19,7 @@
         <label class="upload image-upload" for="images"><strong>画像ファイルを追加</strong><span>PNG / JPEG / GIF / WebP · 各10 MiB、合計20 MiB</span><input id="images" type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple></label>
         <p class="image-help">画像はログのカーソル位置に挿入します。先に User: または Assistant: と本文を入力してください。</p>
         <ul id="image-list" aria-label="追加した画像"></ul>
-        <details><summary>対応するログの形式</summary><p><code>User:</code> と <code>Assistant:</code> をそれぞれ単独の行に書き、その次の行から本文を入力してください。</p><p>「あなた:」「自分:」「ChatGPT:」「AI:」も使えます。見出し・太字・インラインコード・コードブロック・<code>```mermaid</code> の図に対応しています。JSON / ZIPのエクスポートには対応していません。</p><p>Mermaid図の変換時だけ描画ライブラリをインターネットから読み込みます。作成したHTMLには図をSVGとして埋め込むため、閲覧時の通信は不要です。</p></details>
+        <details><summary>対応するログの形式</summary><p><code>User:</code> と <code>Assistant:</code> をそれぞれ単独の行に書き、その次の行から本文を入力してください。</p><p>「あなた:」「自分:」「ChatGPT:」「AI:」も使えます。見出し・太字・インラインコード・Markdown表・コードブロック・<code>```mermaid</code> の図に対応しています。JSON / ZIPのエクスポートには対応していません。</p><p>Mermaid図の変換時だけ描画ライブラリをインターネットから読み込みます。作成したHTMLには図をSVGとして埋め込むため、閲覧時の通信は不要です。</p></details>
         <button id="convert" class="primary" type="button">HTMLに変換 <span>→</span></button>
         <p id="status" class="status" role="status" aria-live="polite">ログを入力して、変換ボタンを押してください。</p>
       </section>
